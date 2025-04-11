@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../Context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 import '../assets/styles/Auth.css';
 
 const Register = () => {
@@ -8,7 +8,7 @@ const Register = () => {
     name: '',
     email: '',
     password: '',
-    password_confirmation: ''
+    confirmPassword: ''
   });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
@@ -17,14 +17,8 @@ const Register = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    // Clear error when user types
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
-    }
+    setFormData(prev => ({ ...prev, [name]: value }));
+    if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
   };
 
   const handleSubmit = async (e) => {
@@ -32,8 +26,19 @@ const Register = () => {
     setIsLoading(true);
     setErrors({});
 
+    // Client-side validation
+    if (formData.password !== formData.confirmPassword) {
+      setErrors({ confirmPassword: 'Passwords do not match' });
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      await register(formData);
+      await register({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password
+      });
       navigate('/dashboard');
     } catch (err) {
       if (err.response?.data?.errors) {
@@ -47,87 +52,98 @@ const Register = () => {
   };
 
   return (
-    <div className="auth-container">
+    <div className="auth-page">
       <div className="auth-card">
-        <h2>Create Account</h2>
-        
-        {errors.general && (
-          <div className="auth-error">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-              <path fillRule="evenodd" d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clipRule="evenodd" />
-            </svg>
-            {errors.general}
-          </div>
-        )}
+        <div className="auth-header">
+          <h2>Create Account</h2>
+          <p>Get started with your free account</p>
+        </div>
 
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
+        {errors.general && <div className="auth-error-message">{errors.general}</div>}
+
+        <form onSubmit={handleSubmit} className="auth-form">
+          <div className="input-group">
             <label htmlFor="name">Full Name</label>
             <input
               type="text"
               id="name"
               name="name"
+              placeholder="Enter your full name"
               value={formData.name}
               onChange={handleChange}
-              className={errors.name ? 'input-error' : ''}
               required
+              disabled={isLoading}
+              className={errors.name ? 'input-error' : ''}
             />
-            {errors.name && <span className="error-message">{errors.name[0]}</span>}
+            {errors.name && <span className="error-text">{errors.name}</span>}
           </div>
 
-          <div className="form-group">
+          <div className="input-group">
             <label htmlFor="email">Email</label>
             <input
               type="email"
               id="email"
               name="email"
+              placeholder="Enter your email"
               value={formData.email}
               onChange={handleChange}
-              className={errors.email ? 'input-error' : ''}
               required
+              disabled={isLoading}
+              className={errors.email ? 'input-error' : ''}
             />
-            {errors.email && <span className="error-message">{errors.email[0]}</span>}
+            {errors.email && <span className="error-text">{errors.email}</span>}
           </div>
 
-          <div className="form-group">
+          <div className="input-group">
             <label htmlFor="password">Password</label>
             <input
               type="password"
               id="password"
               name="password"
+              placeholder="••••••••"
               value={formData.password}
               onChange={handleChange}
-              className={errors.password ? 'input-error' : ''}
               required
+              disabled={isLoading}
+              className={errors.password ? 'input-error' : ''}
             />
-            {errors.password && <span className="error-message">{errors.password[0]}</span>}
+            {errors.password && <span className="error-text">{errors.password}</span>}
           </div>
 
-          <div className="form-group">
-            <label htmlFor="password_confirmation">Confirm Password</label>
+          <div className="input-group">
+            <label htmlFor="confirmPassword">Confirm Password</label>
             <input
               type="password"
-              id="password_confirmation"
-              name="password_confirmation"
-              value={formData.password_confirmation}
+              id="confirmPassword"
+              name="confirmPassword"
+              placeholder="••••••••"
+              value={formData.confirmPassword}
               onChange={handleChange}
               required
+              disabled={isLoading}
+              className={errors.confirmPassword ? 'input-error' : ''}
             />
+            {errors.confirmPassword && (
+              <span className="error-text">{errors.confirmPassword}</span>
+            )}
           </div>
 
-          <button type="submit" disabled={isLoading} className="auth-button">
+          <button type="submit" className="auth-button" disabled={isLoading}>
             {isLoading ? (
               <>
-                <span className="spinner"></span>
-                Registering...
+                <span className="spinner"></span> Creating account...
               </>
-            ) : 'Create Account'}
+            ) : 'Sign Up'}
           </button>
         </form>
 
         <div className="auth-footer">
-          Already have an account? <Link to="/login">Sign in</Link>
+          <p>Already have an account? <Link to="/login">Sign in</Link></p>
         </div>
+      </div>
+
+      <div className="auth-illustration">
+        <img src="/images/auth-illustration.svg" alt="Authentication illustration" />
       </div>
     </div>
   );

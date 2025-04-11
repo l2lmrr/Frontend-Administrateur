@@ -1,14 +1,16 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { AuthProvider } from '../src/Context/AuthContext';
-import { ProductProvider } from '../src/Context/ProductContext';
-import Layout from '../src/Components/Layout/layout';
+import { AuthProvider } from './context/AuthContext';
+import { ProductProvider } from './context/ProductContext';
+import Layout from './components/layout/Layout';
 import ProtectedRouter from './routers/ProtectedRouter';
-import AuthRouter from '../src/routers/authrouter';
-import Home from '../src/pages/Home';
-import Dashboard from '../src/pages/dahsboard';
-import Products from '../src/pages/Products';
-import Profile from '../src/pages/Profile';
-import NotFound from '../src/pages/NotFound';
+import AuthRouter from './routers/authrouter';
+import Home from './pages/Home';
+import Login from './components/auth/Login';
+import Register from './components/auth/Register';
+import Dashboard from './pages/dahsboard';
+import Products from './pages/Products';
+import Profile from './pages/Profile';
+import NotFound from './pages/NotFound';
 
 function App() {
   return (
@@ -16,19 +18,21 @@ function App() {
       <AuthProvider>
         <ProductProvider>
           <Routes>
-            {/* Public Routes */}
             <Route path="/" element={<Layout />}>
+              {/* Public Routes */}
               <Route index element={<Home />} />
+              <Route path="login" element={<Login />} />
+              <Route path="register" element={<Register />} />
               <Route path="auth/*" element={<AuthRouter />} />
-              
+
               {/* Protected Routes */}
               <Route element={<ProtectedRouter />}>
                 <Route path="dashboard" element={<Dashboard />} />
                 <Route path="products" element={<Products />} />
                 <Route path="profile" element={<Profile />} />
               </Route>
-              
-              {/* 404 Page */}
+
+              {/* 404 Catch-All */}
               <Route path="*" element={<NotFound />} />
             </Route>
           </Routes>

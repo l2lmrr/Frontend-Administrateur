@@ -1,62 +1,27 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { authAPI } from '../Services/axios';
+import api from '../Services/axios';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const verifyAuth = async () => {
-      const token = localStorage.getItem('authToken');
-      if (token) {
-        try {
-          const { data } = await authAPI.getUser();
-          setUser(data);
-        } catch (err) {
-          localStorage.removeItem('authToken');
-        }
-      }
-      setIsLoading(false);
-    };
-    verifyAuth();
-  }, []);
-
-  const register = async (formData) => {
-    const { data } = await authAPI.register(formData);
-    localStorage.setItem('authToken', data.token);
-    setUser(data.user);
-    navigate('/dashboard');
-  };
-
   const login = async (credentials) => {
-    const { data } = await authAPI.login(credentials);
-    localStorage.setItem('authToken', data.token);
-    setUser(data.user);
-    navigate('/dashboard');
-  };
-
-  const logout = async () => {
     try {
-      await authAPI.logout();
-    } finally {
-      localStorage.removeItem('authToken');
-      setUser(null);
-      navigate('/login');
+      const response = await api.post('/v1/login', credentials);
+      localStorage.setItem('authToken', response.data.token);
+      setUser(response.data.user);
+      return true; // Return success status
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error; // Re-throw the error to be caught in the Login component
     }
   };
 
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      isLoading, 
-      register, 
-      login, 
-      logout 
-    }}>
+    <AuthContext.Provider value={{ user, login }}>
       {children}
     </AuthContext.Provider>
   );
